@@ -8,13 +8,17 @@
             <span class="text-3xl md:text-4xl">📝</span>
             <div>
               <h1 class="text-xl md:text-2xl font-bold text-gray-800">Bloco de Notas</h1>
-              <p class="text-xs md:text-sm text-gray-600">{{ notes.length }} {{ notes.length === 1 ? 'nota' : 'notas' }}</p>
+              <p class="text-xs md:text-sm text-gray-600">
+                <span v-if="loading">Carregando...</span>
+                <span v-else>{{ notes.length }} {{ notes.length === 1 ? 'nota' : 'notas' }}</span>
+              </p>
             </div>
           </div>
           
           <button
             @click="openCreateModal"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2.5 md:px-6 md:py-3 flex items-center space-x-2"
+            :disabled="loading"
+            class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2.5 md:px-6 md:py-3 flex items-center space-x-2"
           >
             <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -36,8 +40,13 @@
         />
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center items-center py-16">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+
       <!-- Notes Grid -->
-      <div v-if="filteredNotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+      <div v-else-if="filteredNotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         <NoteCard
           v-for="note in filteredNotes"
           :key="note.id"
@@ -82,28 +91,13 @@
 </template>
 
 <script setup lang="ts">
-interface Note {
-  id: string
-  title: string
-  content: string
-  category?: string
-  createdAt: Date
-  updatedAt: Date
-}
+import type { Note, NoteFormData } from '~/types/note'
 
+// Composables
 const toast = useToast()
+const { notes, loading, fetchNotes, createNote, updateNote, deleteNote } = useSupabaseNotes()
 
 // Estado
-const notes = ref<Note[]>([
-  {
-    id: '1',
-    title: 'Bem-vindo ao Bloco de Notas! 👋',
-    content: 'Esta é uma nota de exemplo. Você pode criar, editar e excluir notas. Use as categorias para organizar suas anotações e a busca para encontrá-las rapidamente!',
-    category: 'Exemplo',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-])
 const isModalOpen = ref(false)
 const editingNote = ref<Note | null>(null)
 const searchQuery = ref('')
@@ -137,7 +131,7 @@ const filteredNotes = computed(() => {
 
   // Ordenar por data de atualização (mais recente primeiro)
   return filtered.sort((a, b) => 
-    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
   )
 })
 
@@ -157,37 +151,46 @@ const closeModal = () => {
   editingNote.value = null
 }
 
-const saveNote = (noteData: Partial<Note>) => {
-  if (noteData.id) {
-    // Editar nota existente
-    const index = notes.value.findIndex(n => n.id === noteData.id)
-    if (index !== -1) {
-      notes.value[index] = {
-        ...notes.value[index],
-        ...noteData,
-        updatedAt: new Date()
+const saveNote = async (noteData: NoteFormData) => {
+  try {
+    if (editingNote.value) {
+      // Editar nota existente
+      const result = await updateNote(editingNote.value.id, noteData)
+      if (result) {
+        toast.success('✅ Nota atualizada com sucesso!')
+        closeModal()
+      } else {
+        toast.error('❌ Erro ao atualizar nota')
       }
-      toast.success('✅ Nota atualizada com sucesso!')
+    } else {
+      // Criar nova nota
+      const result = await createNote(noteData)
+      if (result) {
+        toast.success('✅ Nota criada com sucesso!')
+        closeModal()
+      } else {
+        toast.error('❌ Erro ao criar nota')
+      }
     }
-  } else {
-    // Criar nova nota
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: noteData.title || '',
-      content: noteData.content || '',
-      category: noteData.category,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-    notes.value.push(newNote)
-    toast.success('✅ Nota criada com sucesso!')
+  } catch (error) {
+    console.error('Erro ao salvar nota:', error)
+    toast.error('❌ Erro ao salvar nota')
   }
 }
 
-const confirmDelete = (note: Note) => {
+const confirmDelete = async (note: Note) => {
   if (confirm(`Tem certeza que deseja excluir a nota "${note.title}"?`)) {
-    notes.value = notes.value.filter(n => n.id !== note.id)
-    toast.info('🗑️ Nota excluída')
+    try {
+      const success = await deleteNote(note.id)
+      if (success) {
+        toast.info('🗑️ Nota excluída')
+      } else {
+        toast.error('❌ Erro ao excluir nota')
+      }
+    } catch (error) {
+      console.error('Erro ao deletar nota:', error)
+      toast.error('❌ Erro ao excluir nota')
+    }
   }
 }
 
@@ -198,4 +201,9 @@ const handleSearch = (query: string) => {
 const handleFilter = (category: string) => {
   filterCategory.value = category
 }
+
+// Lifecycle
+onMounted(() => {
+  fetchNotes()
+})
 </script>

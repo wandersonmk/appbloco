@@ -42,14 +42,7 @@
 </template>
 
 <script setup lang="ts">
-interface Note {
-  id: string
-  title: string
-  content: string
-  category?: string
-  createdAt: Date
-  updatedAt: Date
-}
+import type { Note } from '~/types/note'
 
 interface Props {
   note: Note
@@ -63,7 +56,7 @@ defineEmits<{
 }>()
 
 const formattedDate = computed(() => {
-  const date = new Date(props.note.updatedAt)
+  const date = new Date(props.note.updated_at)
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',

@@ -1,5 +1,4 @@
 <template>
-<template>
   <Teleport to="body">
     <div
       v-if="isOpen"
@@ -87,17 +86,9 @@
     </div>
   </Teleport>
 </template>
-</template>
 
 <script setup lang="ts">
-interface Note {
-  id: string
-  title: string
-  content: string
-  category?: string
-  createdAt: Date
-  updatedAt: Date
-}
+import type { Note, NoteFormData } from '~/types/note'
 
 interface Props {
   isOpen: boolean
@@ -108,7 +99,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   close: []
-  save: [note: Partial<Note>]
+  save: [note: NoteFormData]
 }>()
 
 const localNote = ref({
@@ -144,13 +135,10 @@ const saveNote = () => {
     return
   }
   
-  const noteData: Partial<Note> = {
-    ...localNote.value,
+  const noteData: NoteFormData = {
+    title: localNote.value.title,
+    content: localNote.value.content,
     category: localNote.value.category || undefined
-  }
-  
-  if (props.note) {
-    noteData.id = props.note.id
   }
   
   emit('save', noteData)
