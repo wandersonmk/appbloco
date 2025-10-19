@@ -2,29 +2,31 @@
   <div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-40">
-      <div class="container mx-auto px-4 py-4">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <span class="text-4xl">📝</span>
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl md:text-4xl">📝</span>
             <div>
-              <h1 class="text-2xl font-bold text-gray-800">Bloco de Notas</h1>
-              <p class="text-sm text-gray-600">{{ notes.length }} {{ notes.length === 1 ? 'nota' : 'notas' }}</p>
+              <h1 class="text-xl md:text-2xl font-bold text-gray-800">Bloco de Notas</h1>
+              <p class="text-xs md:text-sm text-gray-600">{{ notes.length }} {{ notes.length === 1 ? 'nota' : 'notas' }}</p>
             </div>
           </div>
           
           <button
             @click="openCreateModal"
-            class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center gap-2"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2.5 md:px-6 md:py-3 flex items-center space-x-2"
           >
-            <span class="text-xl">+</span>
-            <span>Nova Nota</span>
+            <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="hidden sm:inline">Nova Nota</span>
           </button>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       <!-- Search and Filter -->
       <div class="mb-6">
         <NoteSearch
@@ -35,7 +37,7 @@
       </div>
 
       <!-- Notes Grid -->
-      <div v-if="filteredNotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-if="filteredNotes.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         <NoteCard
           v-for="note in filteredNotes"
           :key="note.id"
@@ -46,31 +48,36 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else class="text-center py-16">
-        <div class="text-6xl mb-4">📭</div>
-        <h2 class="text-2xl font-semibold text-gray-700 mb-2">
+      <div v-else class="text-center py-16 md:py-20">
+        <div class="text-6xl md:text-7xl mb-4">📭</div>
+        <h2 class="text-2xl md:text-3xl font-bold text-gray-700 mb-3">
           {{ searchQuery || filterCategory ? 'Nenhuma nota encontrada' : 'Nenhuma nota ainda' }}
         </h2>
-        <p class="text-gray-600 mb-6">
+        <p class="text-base md:text-lg text-gray-600 mb-8 max-w-md mx-auto px-4">
           {{ searchQuery || filterCategory ? 'Tente outro termo de busca ou filtro' : 'Comece criando sua primeira nota!' }}
         </p>
         <button
           v-if="!searchQuery && !filterCategory"
           @click="openCreateModal"
-          class="px-8 py-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-8 py-4 text-base md:text-lg inline-flex items-center space-x-2"
         >
-          Criar Primeira Nota
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Criar Primeira Nota</span>
         </button>
       </div>
     </main>
 
     <!-- Modal -->
-    <NoteModal
-      :is-open="isModalOpen"
-      :note="editingNote"
-      @close="closeModal"
-      @save="saveNote"
-    />
+    <ClientOnly>
+      <NoteModal
+        :is-open="isModalOpen"
+        :note="editingNote"
+        @close="closeModal"
+        @save="saveNote"
+      />
+    </ClientOnly>
   </div>
 </template>
 
