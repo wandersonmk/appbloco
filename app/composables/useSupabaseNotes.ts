@@ -5,6 +5,25 @@ export const useSupabaseNotes = () => {
   const notes = ref<Note[]>([])
   const loading = ref(false)
 
+  // Converte texto simples para HTML se necessário
+  const ensureHtmlContent = (content: string): string => {
+    if (!content) return '<p></p>'
+    
+    // Verifica se já é HTML (contém tags)
+    if (content.includes('<p>') || content.includes('<h1>') || content.includes('<ul>')) {
+      return content
+    }
+    
+    // Converte texto simples para HTML
+    // Preserva quebras de linha
+    const lines = content.split('\n')
+    const htmlLines = lines.map(line => {
+      if (line.trim() === '') return '<p></p>'
+      return `<p>${line}</p>`
+    })
+    return htmlLines.join('')
+  }
+
   // Buscar todas as notas
   const fetchNotes = async () => {
     loading.value = true
@@ -19,7 +38,12 @@ export const useSupabaseNotes = () => {
         return
       }
       
-      notes.value = data || []
+      // Converte conteúdo para HTML se necessário
+      notes.value = (data || []).map(note => ({
+        ...note,
+        content: ensureHtmlContent(note.content),
+        category: note.category || undefined
+      }))
     } catch (error) {
       console.error('Erro ao buscar notas:', error)
     } finally {
@@ -46,8 +70,12 @@ export const useSupabaseNotes = () => {
       }
       
       // Adicionar a nova nota ao início da lista
-      notes.value.unshift(data)
-      return data
+      const newNote: Note = {
+        ...data,
+        category: data.category || undefined
+      }
+      notes.value.unshift(newNote)
+      return newNote
     } catch (error) {
       console.error('Erro ao criar nota:', error)
       return null
@@ -75,12 +103,16 @@ export const useSupabaseNotes = () => {
       }
       
       // Atualizar a nota na lista
+      const updatedNote: Note = {
+        ...data,
+        category: data.category || undefined
+      }
       const index = notes.value.findIndex(note => note.id === id)
       if (index !== -1) {
-        notes.value[index] = data
+        notes.value[index] = updatedNote
       }
       
-      return data
+      return updatedNote
     } catch (error) {
       console.error('Erro ao atualizar nota:', error)
       return null
