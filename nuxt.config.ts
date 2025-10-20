@@ -14,4 +14,24 @@ export default defineNuxtConfig({
     key: process.env.SUPABASE_ANON_KEY,
     redirect: false,
   },
+  nitro: {
+    preset: 'vercel',
+    minify: true,
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'tiptap-core': ['@tiptap/vue-3', '@tiptap/starter-kit'],
+            'tiptap-extensions': [
+              '@tiptap/extension-underline',
+              '@tiptap/extension-text-align',
+              '@tiptap/extension-placeholder'
+            ],
+          },
+        },
+      },
+    },
+  },
 })
