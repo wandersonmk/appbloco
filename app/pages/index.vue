@@ -150,16 +150,20 @@ const filteredNotes = computed(() => {
 
 // Funções
 const openCreateModal = () => {
+  console.log('openCreateModal called')
   editingNote.value = null
   isModalOpen.value = true
+  console.log('isModalOpen:', isModalOpen.value)
 }
 
 const openEditModal = (note: Note) => {
+  console.log('openEditModal called', note)
   editingNote.value = note
   isModalOpen.value = true
 }
 
 const closeModal = () => {
+  console.log('closeModal called')
   isModalOpen.value = false
   editingNote.value = null
 }
@@ -232,7 +236,10 @@ const handleFilter = (category: string) => {
 }
 
 // Lifecycle
+console.log('Index.vue script loaded')
+
 onMounted(() => {
+  console.log('Index.vue mounted')
   fetchNotes()
 })
 </script>
