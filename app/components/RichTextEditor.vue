@@ -139,20 +139,25 @@
     </div>
 
     <!-- Editor Content -->
-    <editor-content 
-      :editor="editor" 
-      class="editor-content border border-t-0 border-gray-300 rounded-b-lg p-4 min-h-[200px] bg-white focus-within:border-blue-500 transition-colors"
-    />
+    <ClientOnly>
+      <component 
+        :is="EditorContent" 
+        v-if="editor"
+        :editor="editor" 
+        class="editor-content border border-t-0 border-gray-300 rounded-b-lg p-4 min-h-[200px] bg-white focus-within:border-blue-500 transition-colors"
+      />
+      <template #fallback>
+        <div class="border border-t-0 border-gray-300 rounded-b-lg p-4 min-h-[200px] bg-gray-50 animate-pulse">
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+          <div class="h-4 bg-gray-200 rounded w-full mb-3"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
+      </template>
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import TextAlign from '@tiptap/extension-text-align'
-import Placeholder from '@tiptap/extension-placeholder'
-
 interface Props {
   modelValue: string
   placeholder?: string
@@ -166,37 +171,59 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const editor = useEditor({
-  extensions: [
-    StarterKit,
-    Underline,
-    TextAlign.configure({
-      types: ['heading', 'paragraph'],
-    }),
-    Placeholder.configure({
-      placeholder: props.placeholder,
-    }),
-  ],
-  content: props.modelValue,
-  onUpdate: ({ editor }) => {
-    emit('update:modelValue', editor.getHTML())
-  },
-  editorProps: {
-    attributes: {
-      class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none max-w-none',
-    },
-  },
+const editor = ref<any>(null)
+const EditorContent = ref<any>(null)
+
+onMounted(async () => {
+  if (process.client) {
+    try {
+      const [{ useEditor, EditorContent: EC }, StarterKit, Underline, TextAlign, Placeholder] = await Promise.all([
+        import('@tiptap/vue-3'),
+        import('@tiptap/starter-kit'),
+        import('@tiptap/extension-underline'),
+        import('@tiptap/extension-text-align'),
+        import('@tiptap/extension-placeholder'),
+      ])
+
+      EditorContent.value = EC
+
+      editor.value = useEditor({
+        extensions: [
+          StarterKit.default,
+          Underline.default,
+          TextAlign.default.configure({
+            types: ['heading', 'paragraph'],
+          }),
+          Placeholder.default.configure({
+            placeholder: props.placeholder,
+          }),
+        ],
+        content: props.modelValue,
+        onUpdate: ({ editor }) => {
+          emit('update:modelValue', editor.getHTML())
+        },
+        editorProps: {
+          attributes: {
+            class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none max-w-none',
+          },
+        },
+      })
+    } catch (error) {
+      console.error('Error loading editor:', error)
+    }
+  }
 })
 
 watch(() => props.modelValue, (value) => {
-  const isSame = editor.value?.getHTML() === value
-  if (!isSame && editor.value) {
-    editor.value.commands.setContent(value, false)
+  if (editor.value && editor.value.getHTML() !== value) {
+    editor.value.commands.setContent(value)
   }
 })
 
 onBeforeUnmount(() => {
-  editor.value?.destroy()
+  if (editor.value) {
+    editor.value.destroy()
+  }
 })
 </script>
 
