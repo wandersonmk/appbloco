@@ -51,6 +51,7 @@
           v-for="note in filteredNotes"
           :key="note.id"
           :note="note"
+          @view="openViewModal"
           @edit="openEditModal"
           @delete="confirmDelete"
         />
@@ -78,13 +79,23 @@
       </div>
     </main>
 
-    <!-- Modal -->
+    <!-- Modals -->
     <ClientOnly>
+      <!-- Modal de Edição/Criação -->
       <NoteModal
         :is-open="isModalOpen"
         :note="editingNote"
         @close="closeModal"
         @save="saveNote"
+      />
+      
+      <!-- Modal de Visualização -->
+      <NoteViewModal
+        :is-open="isViewModalOpen"
+        :note="viewingNote"
+        @close="closeViewModal"
+        @edit="openEditFromView"
+        @delete="confirmDelete"
       />
     </ClientOnly>
   </div>
@@ -100,6 +111,8 @@ const { notes, loading, fetchNotes, createNote, updateNote, deleteNote } = useSu
 // Estado
 const isModalOpen = ref(false)
 const editingNote = ref<Note | null>(null)
+const isViewModalOpen = ref(false)
+const viewingNote = ref<Note | null>(null)
 const searchQuery = ref('')
 const filterCategory = ref('')
 
@@ -149,6 +162,22 @@ const openEditModal = (note: Note) => {
 const closeModal = () => {
   isModalOpen.value = false
   editingNote.value = null
+}
+
+const openViewModal = (note: Note) => {
+  viewingNote.value = note
+  isViewModalOpen.value = true
+}
+
+const closeViewModal = () => {
+  isViewModalOpen.value = false
+  viewingNote.value = null
+}
+
+const openEditFromView = (note: Note) => {
+  closeViewModal()
+  editingNote.value = note
+  isModalOpen.value = true
 }
 
 const saveNote = async (noteData: NoteFormData) => {

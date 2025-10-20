@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 overflow-hidden group">
+  <div 
+    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 overflow-hidden group"
+    @click="$emit('view', note)"
+  >
     <div class="p-5 md:p-6">
       <div class="flex justify-between items-start mb-3">
         <h3 class="text-lg md:text-xl font-bold text-gray-800 line-clamp-2 flex-1 pr-2">
@@ -51,6 +54,7 @@ interface Props {
 const props = defineProps<Props>()
 
 defineEmits<{
+  view: [note: Note]
   edit: [note: Note]
   delete: [note: Note]
 }>()
