@@ -1,5 +1,5 @@
 <template>
-  <div class="rich-text-editor">
+  <div v-if="isMounted" class="rich-text-editor">
     <!-- Toolbar -->
     <div v-if="editor" class="toolbar bg-gray-50 border border-gray-300 rounded-t-lg p-2 flex flex-wrap gap-1">
       <!-- Bold -->
@@ -173,9 +173,11 @@ const emit = defineEmits<{
 
 const editor = ref<any>(null)
 const EditorContent = ref<any>(null)
+const isMounted = ref(false)
 
 onMounted(async () => {
   if (process.client) {
+    isMounted.value = true
     try {
       const [{ useEditor, EditorContent: EC }, StarterKit, Underline, TextAlign, Placeholder] = await Promise.all([
         import('@tiptap/vue-3'),
