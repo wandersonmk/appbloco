@@ -35,7 +35,7 @@
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8">
           <div class="prose prose-sm md:prose-lg max-w-none">
-            <p class="text-gray-700 text-sm md:text-lg leading-relaxed whitespace-pre-wrap break-words">{{ note.content }}</p>
+            <div class="text-gray-700 text-sm md:text-lg leading-relaxed" v-html="note.content"></div>
           </div>
         </div>
 
