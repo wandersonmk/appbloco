@@ -24,15 +24,16 @@
         <span class="text-lg">I</span>
       </button>
 
-      <!-- Underline -->
+      <!-- Strikethrough -->
       <button
-        @click="toggleFormat('underline')"
+        @click="toggleFormat('strikeThrough')"
         type="button"
-        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold underline text-gray-800"
-        :class="{ 'bg-blue-200': isFormatActive('underline') }"
-        title="Sublinhado (Ctrl+U)"
+        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold text-gray-800"
+        style="text-decoration: line-through;"
+        :class="{ 'bg-blue-200': isFormatActive('strikeThrough') }"
+        title="Tachado (Ctrl+U)"
       >
-        <span class="text-lg">U</span>
+        <span class="text-lg">S</span>
       </button>
 
       <div class="w-px h-6 bg-gray-300 mx-1"></div>
@@ -126,7 +127,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
   let html = markdown
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/_(.*?)_/g, '<em>$1</em>')
-  html = html.replace(/~~(.*?)~~/g, '<u>$1</u>') // Mudei de __ para ~~ para sublinhado
+  html = html.replace(/~~(.*?)~~/g, '<strike>$1</strike>') // Tachado
   html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>')
   html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>')
   html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>')
@@ -149,6 +150,8 @@ const getMarkdownFromHtml = (): string => {
   content = content.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
   content = content.replace(/<em[^>]*>(.*?)<\/em>/gi, '_$1_')
   content = content.replace(/<i[^>]*>(.*?)<\/i>/gi, '_$1_')
+  content = content.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '~~$1~~')
+  content = content.replace(/<s[^>]*>(.*?)<\/s>/gi, '~~$1~~')
   content = content.replace(/<u[^>]*>(.*?)<\/u>/gi, '~~$1~~')
   
   // Converte parágrafos e divs de alinhamento
@@ -197,7 +200,7 @@ const handleKeydown = (event: KeyboardEvent) => {
       toggleFormat('italic')
     } else if (event.key === 'u') {
       event.preventDefault()
-      toggleFormat('underline')
+      toggleFormat('strikeThrough')
     }
   }
 }
@@ -231,6 +234,13 @@ const setAlignment = (align: string) => {
 
 .wysiwyg-editor:focus {
   outline: none;
+}
+
+/* Faz o <u>, <strike> e <s> mostrarem como tachado (strikethrough) no editor */
+.wysiwyg-editor u,
+.wysiwyg-editor strike,
+.wysiwyg-editor s {
+  text-decoration: line-through;
 }
 
 .toolbar-btn:hover {

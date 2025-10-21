@@ -100,7 +100,7 @@ const formattedContent = computed(() => {
   // Converte marcação para HTML
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
   html = html.replace(/_(.*?)_/g, '<em>$1</em>') // Itálico
-  html = html.replace(/~~(.*?)~~/g, '<u>$1</u>') // Sublinhado (novo formato)
+  html = html.replace(/~~(.*?)~~/g, '<s>$1</s>') // Tachado
   html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>') // Esquerda
   html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>') // Centro
   html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>') // Direita
@@ -149,5 +149,12 @@ onUnmounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Tachado (strikethrough) */
+:deep(u),
+:deep(strike),
+:deep(s) {
+  text-decoration: line-through;
 }
 </style>
