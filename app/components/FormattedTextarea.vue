@@ -77,15 +77,24 @@
       </button>
     </div>
 
-    <!-- Textarea -->
-    <textarea
-      ref="textareaRef"
-      :value="modelValue"
-      @input="handleInput"
-      :placeholder="placeholder"
-      :rows="rows"
-      class="w-full px-4 py-3 text-base border-2 border-t-0 border-gray-200 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-    ></textarea>
+    <!-- Textarea e Preview -->
+    <div class="relative">      
+      <!-- Textarea -->
+      <textarea
+        ref="textareaRef"
+        :value="modelValue"
+        @input="handleInput"
+        :placeholder="placeholder"
+        :rows="rows"
+        class="w-full px-4 py-3 text-base border-2 border-t-0 border-gray-200 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+      ></textarea>
+      
+      <!-- Preview ao vivo (pequeno) -->
+      <div v-if="modelValue" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-xs font-semibold text-blue-700 mb-1">📝 Preview:</p>
+        <div v-html="livePreview" class="text-sm text-gray-800"></div>
+      </div>
+    </div>
 
     <!-- Preview -->
     <div v-if="showPreview" class="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
@@ -189,6 +198,19 @@ const formattedContent = computed(() => {
   html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>') // Centro
   html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>') // Direita
   html = html.replace(/\n/g, '<br>') // Quebras de linha
+  
+  return html
+})
+
+// Preview ao vivo enquanto digita
+const livePreview = computed(() => {
+  let text = props.modelValue || ''
+  
+  // Aplica formatação visual mas mantém o texto original
+  let html = text
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #1f2937;">$1</strong>')
+  html = html.replace(/(?<!\*)_([^_]+?)_(?!\*)/g, '<em style="color: #1f2937;">$1</em>')
+  html = html.replace(/__(.*?)__/g, '<u style="color: #1f2937;">$1</u>')
   
   return html
 })

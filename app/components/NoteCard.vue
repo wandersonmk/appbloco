@@ -30,9 +30,7 @@
         </div>
       </div>
       
-      <p class="text-gray-600 text-sm md:text-base line-clamp-3 mb-4 leading-relaxed">
-        {{ note.content || 'Sem conteúdo' }}
-      </p>
+      <div class="text-gray-600 text-sm md:text-base line-clamp-3 mb-4 leading-relaxed" v-html="formattedPreview"></div>
       
       <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
         <span class="text-xs md:text-sm text-gray-500 font-medium">{{ formattedDate }}</span>
@@ -58,6 +56,19 @@ defineEmits<{
   edit: [note: Note]
   delete: [note: Note]
 }>()
+
+const formattedPreview = computed(() => {
+  let html = props.note.content || 'Sem conteúdo'
+  
+  // Converte marcação para HTML (limitado para preview)
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
+  html = html.replace(/(?<!\*)_([^_]+?)_(?!\*)/g, '<em>$1</em>') // Itálico (evita conflito com __)
+  html = html.replace(/__(.*?)__/g, '<u>$1</u>') // Sublinhado
+  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<span style="display: block; text-align: center;">$1</span>')
+  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<span style="display: block; text-align: right;">$1</span>')
+  
+  return html
+})
 
 const formattedDate = computed(() => {
   const date = new Date(props.note.updated_at)
