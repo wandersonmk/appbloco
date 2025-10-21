@@ -96,7 +96,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: 'Digite seu texto...',
+  placeholder: 'Digite o conteúdo da sua nota... Use o botão B para negrito, I para itálico, S para tachado',
   rows: 8
 })
 
