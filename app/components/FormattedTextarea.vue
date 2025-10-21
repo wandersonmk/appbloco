@@ -138,38 +138,47 @@ const convertMarkdownToHtml = (markdown: string): string => {
 const getMarkdownFromHtml = (): string => {
   if (!editorRef.value) return ''
   
-  let html = editorRef.value.innerHTML
+  // Clona o conteúdo para processar
+  let content = editorRef.value.innerHTML
   
-  // Converte tags HTML para markdown
-  html = html.replace(/<strong>(.*?)<\/strong>/g, '**$1**')
-  html = html.replace(/<b>(.*?)<\/b>/g, '**$1**')
-  html = html.replace(/<em>(.*?)<\/em>/g, '_$1_')
-  html = html.replace(/<i>(.*?)<\/i>/g, '_$1_')
-  html = html.replace(/<u>(.*?)<\/u>/g, '~~$1~~')
+  // Remove <br> temporariamente e substitui por marcador
+  content = content.replace(/<br\s*\/?>/gi, '|||BR|||')
   
-  // Alinhamentos
-  html = html.replace(/<div style="text-align:\s*center;">(.*?)<\/div>/g, '[center]$1[/center]')
-  html = html.replace(/<div style="text-align:\s*left;">(.*?)<\/div>/g, '[left]$1[/left]')
-  html = html.replace(/<div style="text-align:\s*right;">(.*?)<\/div>/g, '[right]$1[/right]')
+  // Converte tags de formatação (do mais específico para o mais geral)
+  content = content.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+  content = content.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+  content = content.replace(/<em[^>]*>(.*?)<\/em>/gi, '_$1_')
+  content = content.replace(/<i[^>]*>(.*?)<\/i>/gi, '_$1_')
+  content = content.replace(/<u[^>]*>(.*?)<\/u>/gi, '~~$1~~')
   
-  // Quebras de linha
-  html = html.replace(/<br\s*\/?>/gi, '\n')
-  html = html.replace(/<div>(.*?)<\/div>/g, '\n$1')
-  html = html.replace(/<\/div>/g, '\n')
+  // Converte parágrafos e divs de alinhamento
+  content = content.replace(/<div[^>]*style="text-align:\s*center;"[^>]*>(.*?)<\/div>/gi, '[center]$1[/center]')
+  content = content.replace(/<div[^>]*style="text-align:\s*left;"[^>]*>(.*?)<\/div>/gi, '[left]$1[/left]')
+  content = content.replace(/<div[^>]*style="text-align:\s*right;"[^>]*>(.*?)<\/div>/gi, '[right]$1[/right]')
   
-  // Remove &nbsp; e outros caracteres especiais
-  html = html.replace(/&nbsp;/g, ' ')
-  html = html.replace(/&amp;/g, '&')
-  html = html.replace(/&lt;/g, '<')
-  html = html.replace(/&gt;/g, '>')
+  // Remove parágrafos normais (substitui por quebra de linha)
+  content = content.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1|||BR|||')
+  content = content.replace(/<div[^>]*>(.*?)<\/div>/gi, '$1|||BR|||')
   
-  // Remove qualquer tag HTML restante
-  html = html.replace(/<[^>]*>/g, '')
+  // Remove todas as outras tags HTML
+  content = content.replace(/<[^>]*>/g, '')
   
-  // Limpa linhas vazias múltiplas
-  html = html.replace(/\n{3,}/g, '\n\n')
+  // Decodifica entidades HTML
+  content = content.replace(/&nbsp;/g, ' ')
+  content = content.replace(/&amp;/g, '&')
+  content = content.replace(/&lt;/g, '<')
+  content = content.replace(/&gt;/g, '>')
+  content = content.replace(/&quot;/g, '"')
+  content = content.replace(/&#39;/g, "'")
   
-  return html.trim()
+  // Restaura quebras de linha
+  content = content.replace(/\|\|\|BR\|\|\|/g, '\n')
+  
+  // Limpa espaços extras e múltiplas quebras de linha
+  content = content.replace(/\n{3,}/g, '\n\n')
+  content = content.trim()
+  
+  return content
 }
 
 const handleInput = (event: Event) => {
