@@ -4,30 +4,33 @@
     <div class="toolbar bg-gray-50 border border-gray-300 rounded-t-lg p-2 flex flex-wrap gap-1">
       <!-- Bold -->
       <button
-        @click="wrapSelection('**', '**')"
+        @click="toggleFormat('bold')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold text-gray-800"
-        title="Negrito"
+        :class="{ 'bg-blue-200': isFormatActive('bold') }"
+        title="Negrito (Ctrl+B)"
       >
         <span class="text-lg">B</span>
       </button>
 
       <!-- Italic -->
       <button
-        @click="wrapSelection('_', '_')"
+        @click="toggleFormat('italic')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold italic text-gray-800"
-        title="Itálico"
+        :class="{ 'bg-blue-200': isFormatActive('italic') }"
+        title="Itálico (Ctrl+I)"
       >
         <span class="text-lg">I</span>
       </button>
 
       <!-- Underline -->
       <button
-        @click="wrapSelection('__', '__')"
+        @click="toggleFormat('underline')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold underline text-gray-800"
-        title="Sublinhado"
+        :class="{ 'bg-blue-200': isFormatActive('underline') }"
+        title="Sublinhado (Ctrl+U)"
       >
         <span class="text-lg">U</span>
       </button>
@@ -36,7 +39,7 @@
 
       <!-- Align Left -->
       <button
-        @click="alignText('left')"
+        @click="setAlignment('left')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
         title="Alinhar à esquerda"
@@ -48,7 +51,7 @@
 
       <!-- Align Center -->
       <button
-        @click="alignText('center')"
+        @click="setAlignment('center')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
         title="Centralizar"
@@ -60,7 +63,7 @@
 
       <!-- Align Right -->
       <button
-        @click="alignText('right')"
+        @click="setAlignment('right')"
         type="button"
         class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
         title="Alinhar à direita"
@@ -71,30 +74,16 @@
       </button>
     </div>
 
-    <!-- Textarea e Preview -->
-    <div class="relative">      
-      <!-- Textarea -->
-      <textarea
-        ref="textareaRef"
-        :value="modelValue"
-        @input="handleInput"
-        :placeholder="placeholder"
-        :rows="rows"
-        class="w-full px-4 py-3 text-base border-2 border-t-0 border-gray-200 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-      ></textarea>
-      
-      <!-- Preview ao vivo (pequeno) -->
-      <div v-if="modelValue" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-xs font-semibold text-blue-700 mb-1">📝 Preview:</p>
-        <div v-html="livePreview" class="text-sm text-gray-800"></div>
-      </div>
-    </div>
-
-    <!-- Preview -->
-    <div v-if="showPreview" class="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-      <p class="text-sm font-semibold text-gray-700 mb-2">Preview:</p>
-      <div v-html="formattedContent" class="prose prose-sm max-w-none"></div>
-    </div>
+    <!-- Editor WYSIWYG -->
+    <div
+      ref="editorRef"
+      contenteditable="true"
+      @input="handleInput"
+      @keydown="handleKeydown"
+      :data-placeholder="placeholder"
+      class="wysiwyg-editor w-full min-h-[200px] px-4 py-3 text-base border-2 border-t-0 border-gray-200 rounded-b-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 overflow-y-auto"
+      :style="{ height: `${rows * 24}px` }"
+    ></div>
   </div>
 </template>
 
@@ -103,132 +92,120 @@ interface Props {
   modelValue: string
   placeholder?: string
   rows?: number
-  showPreview?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Digite seu texto...',
-  rows: 10,
-  showPreview: false
+  rows: 8
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  (e: 'update:modelValue', value: string): void
 }>()
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const editorRef = ref<HTMLDivElement | null>(null)
+
+// Carrega o conteúdo inicial quando o componente é montado
+onMounted(() => {
+  if (editorRef.value && props.modelValue) {
+    const html = convertMarkdownToHtml(props.modelValue)
+    editorRef.value.innerHTML = html
+  }
+})
+
+// Atualiza quando o modelValue muda externamente
+watch(() => props.modelValue, (newValue) => {
+  if (editorRef.value && newValue !== getMarkdownFromHtml()) {
+    const html = convertMarkdownToHtml(newValue)
+    editorRef.value.innerHTML = html
+  }
+})
+
+// Converte markdown para HTML
+const convertMarkdownToHtml = (markdown: string): string => {
+  let html = markdown
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/_(.*?)_/g, '<em>$1</em>')
+  html = html.replace(/~~(.*?)~~/g, '<u>$1</u>') // Mudei de __ para ~~ para sublinhado
+  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>')
+  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>')
+  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>')
+  html = html.replace(/\n/g, '<br>')
+  return html
+}
+
+// Converte HTML de volta para markdown
+const getMarkdownFromHtml = (): string => {
+  if (!editorRef.value) return ''
+  
+  let html = editorRef.value.innerHTML
+  html = html.replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+  html = html.replace(/<em>(.*?)<\/em>/g, '_$1_')
+  html = html.replace(/<u>(.*?)<\/u>/g, '~~$1~~')
+  html = html.replace(/<div style="text-align: center;">(.*?)<\/div>/g, '[center]$1[/center]')
+  html = html.replace(/<div style="text-align: left;">(.*?)<\/div>/g, '[left]$1[/left]')
+  html = html.replace(/<div style="text-align: right;">(.*?)<\/div>/g, '[right]$1[/right]')
+  html = html.replace(/<br>/g, '\n')
+  html = html.replace(/<div>(.*?)<\/div>/g, '$1\n')
+  
+  // Remove tags HTML extras
+  const temp = document.createElement('div')
+  temp.innerHTML = html
+  return temp.textContent || ''
+}
 
 const handleInput = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement
-  emit('update:modelValue', target.value)
+  const markdown = getMarkdownFromHtml()
+  emit('update:modelValue', markdown)
 }
 
-const wrapSelection = (before: string, after: string) => {
-  const textarea = textareaRef.value
-  if (!textarea) return
-
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const text = textarea.value
-  const selectedText = text.substring(start, end)
-
-  if (selectedText) {
-    const newText = text.substring(0, start) + before + selectedText + after + text.substring(end)
-    emit('update:modelValue', newText)
-    
-    // Restaura o foco e a seleção
-    nextTick(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + before.length, end + before.length)
-    })
+const handleKeydown = (event: KeyboardEvent) => {
+  // Atalhos de teclado
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key === 'b') {
+      event.preventDefault()
+      toggleFormat('bold')
+    } else if (event.key === 'i') {
+      event.preventDefault()
+      toggleFormat('italic')
+    } else if (event.key === 'u') {
+      event.preventDefault()
+      toggleFormat('underline')
+    }
   }
 }
 
-const alignText = (alignment: string) => {
-  const textarea = textareaRef.value
-  if (!textarea) return
-
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const text = textarea.value
-  
-  // Encontra o início da linha atual
-  let lineStart = start
-  while (lineStart > 0 && text[lineStart - 1] !== '\n') {
-    lineStart--
-  }
-  
-  // Encontra o fim da linha atual
-  let lineEnd = end
-  while (lineEnd < text.length && text[lineEnd] !== '\n') {
-    lineEnd++
-  }
-  
-  const lineText = text.substring(lineStart, lineEnd)
-  const tag = `[${alignment}]`
-  const closeTag = `[/${alignment}]`
-  
-  // Remove tags de alinhamento existentes
-  const cleanLine = lineText.replace(/\[(left|center|right)\]/g, '').replace(/\[\/(left|center|right)\]/g, '')
-  
-  const newLine = tag + cleanLine + closeTag
-  const newText = text.substring(0, lineStart) + newLine + text.substring(lineEnd)
-  
-  emit('update:modelValue', newText)
-  
-  nextTick(() => {
-    textarea.focus()
-  })
+const toggleFormat = (format: string) => {
+  document.execCommand(format, false)
+  editorRef.value?.focus()
 }
 
-const formattedContent = computed(() => {
-  let html = props.modelValue || ''
-  
-  // Converte marcação para HTML
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
-  html = html.replace(/_(.*?)_/g, '<em>$1</em>') // Itálico
-  html = html.replace(/__(.*?)__/g, '<u>$1</u>') // Sublinhado
-  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>') // Esquerda
-  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>') // Centro
-  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>') // Direita
-  html = html.replace(/\n/g, '<br>') // Quebras de linha
-  
-  return html
-})
+const isFormatActive = (format: string): boolean => {
+  return document.queryCommandState(format)
+}
 
-// Preview ao vivo enquanto digita
-const livePreview = computed(() => {
-  let text = props.modelValue || ''
-  
-  // Aplica formatação HTML completa
-  let html = text
-  
-  // Negrito
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-  
-  // Itálico (evita conflito com underline)
-  html = html.replace(/(?<!_)_([^_]+?)_(?!_)/g, '<em>$1</em>')
-  
-  // Sublinhado
-  html = html.replace(/__(.*?)__/g, '<u>$1</u>')
-  
-  // Centro
-  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div class="text-center">$1</div>')
-  
-  // Esquerda
-  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div class="text-left">$1</div>')
-  
-  // Direita
-  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div class="text-right">$1</div>')
-  
-  // Quebras de linha
-  html = html.replace(/\n/g, '<br>')
-  
-  return html
-})
+const setAlignment = (align: string) => {
+  const alignment = align === 'left' ? 'justifyLeft' : align === 'center' ? 'justifyCenter' : 'justifyRight'
+  document.execCommand(alignment, false)
+  editorRef.value?.focus()
+}
 </script>
 
 <style scoped>
+.wysiwyg-editor {
+  background: white;
+}
+
+.wysiwyg-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.wysiwyg-editor:focus {
+  outline: none;
+}
+
 .toolbar-btn:hover {
   background-color: #e5e7eb;
 }
