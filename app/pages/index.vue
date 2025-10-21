@@ -16,6 +16,13 @@
           </div>
           
           <button
+            @click="handleTest"
+            class="bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2.5 md:px-6 md:py-3 flex items-center space-x-2 mr-2"
+          >
+            <span>Teste</span>
+          </button>
+          
+          <button
             @click="openCreateModal"
             :disabled="loading"
             class="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2.5 md:px-6 md:py-3 flex items-center space-x-2"
@@ -233,6 +240,11 @@ const handleSearch = (query: string) => {
 
 const handleFilter = (category: string) => {
   filterCategory.value = category
+}
+
+const handleTest = () => {
+  console.log('Botão Teste clicado!')
+  alert('Botão Teste funcionando!')
 }
 
 // Lifecycle
