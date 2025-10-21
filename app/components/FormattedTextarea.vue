@@ -6,36 +6,30 @@
       <button
         @click="wrapSelection('**', '**')"
         type="button"
-        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
+        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold text-gray-800"
         title="Negrito"
       >
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M6 4v12h4.5c1.38 0 2.5-.62 2.5-2 0-.87-.5-1.5-1.25-1.75.75-.25 1.25-.88 1.25-1.75 0-1.38-1.12-2-2.5-2H6zm2 2h2c.55 0 1 .45 1 1s-.45 1-1 1H8V6zm0 4h2.5c.83 0 1.5.67 1.5 1.5S11.33 13 10.5 13H8v-3z"/>
-        </svg>
+        <span class="text-lg">B</span>
       </button>
 
       <!-- Italic -->
       <button
         @click="wrapSelection('_', '_')"
         type="button"
-        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
+        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold italic text-gray-800"
         title="Itálico"
       >
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 4v2h1.5l-3 8H7v2h6v-2h-1.5l3-8H16V4h-6z"/>
-        </svg>
+        <span class="text-lg">I</span>
       </button>
 
       <!-- Underline -->
       <button
         @click="wrapSelection('__', '__')"
         type="button"
-        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors"
+        class="toolbar-btn p-2 rounded hover:bg-gray-200 transition-colors font-bold underline text-gray-800"
         title="Sublinhado"
       >
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M6 3v7c0 2.21 1.79 4 4 4s4-1.79 4-4V3h-2v7c0 1.1-.9 2-2 2s-2-.9-2-2V3H6zm-2 14h12v2H4v-2z"/>
-        </svg>
+        <span class="text-lg">U</span>
       </button>
 
       <div class="w-px h-6 bg-gray-300 mx-1"></div>
@@ -206,11 +200,29 @@ const formattedContent = computed(() => {
 const livePreview = computed(() => {
   let text = props.modelValue || ''
   
-  // Aplica formatação visual mas mantém o texto original
+  // Aplica formatação HTML completa
   let html = text
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #1f2937;">$1</strong>')
-  html = html.replace(/(?<!\*)_([^_]+?)_(?!\*)/g, '<em style="color: #1f2937;">$1</em>')
-  html = html.replace(/__(.*?)__/g, '<u style="color: #1f2937;">$1</u>')
+  
+  // Negrito
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  
+  // Itálico (evita conflito com underline)
+  html = html.replace(/(?<!_)_([^_]+?)_(?!_)/g, '<em>$1</em>')
+  
+  // Sublinhado
+  html = html.replace(/__(.*?)__/g, '<u>$1</u>')
+  
+  // Centro
+  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div class="text-center">$1</div>')
+  
+  // Esquerda
+  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div class="text-left">$1</div>')
+  
+  // Direita
+  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div class="text-right">$1</div>')
+  
+  // Quebras de linha
+  html = html.replace(/\n/g, '<br>')
   
   return html
 })
