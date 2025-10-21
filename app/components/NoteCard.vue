@@ -63,9 +63,11 @@ const formattedPreview = computed(() => {
   // Converte marcação para HTML (limitado para preview)
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
   html = html.replace(/_(.*?)_/g, '<em>$1</em>') // Itálico
-  html = html.replace(/~~(.*?)~~/g, '<u>$1</u>') // Sublinhado (novo formato)
-  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<span style="display: block; text-align: center;">$1</span>')
-  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<span style="display: block; text-align: right;">$1</span>')
+  html = html.replace(/~~(.*?)~~/g, '<u>$1</u>') // Sublinhado
+  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<span style="display: block; text-align: left;">$1</span>') // Esquerda
+  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<span style="display: block; text-align: center;">$1</span>') // Centro
+  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<span style="display: block; text-align: right;">$1</span>') // Direita
+  html = html.replace(/\n/g, '<br>') // Quebras de linha
   
   return html
 })

@@ -139,19 +139,37 @@ const getMarkdownFromHtml = (): string => {
   if (!editorRef.value) return ''
   
   let html = editorRef.value.innerHTML
-  html = html.replace(/<strong>(.*?)<\/strong>/g, '**$1**')
-  html = html.replace(/<em>(.*?)<\/em>/g, '_$1_')
-  html = html.replace(/<u>(.*?)<\/u>/g, '~~$1~~')
-  html = html.replace(/<div style="text-align: center;">(.*?)<\/div>/g, '[center]$1[/center]')
-  html = html.replace(/<div style="text-align: left;">(.*?)<\/div>/g, '[left]$1[/left]')
-  html = html.replace(/<div style="text-align: right;">(.*?)<\/div>/g, '[right]$1[/right]')
-  html = html.replace(/<br>/g, '\n')
-  html = html.replace(/<div>(.*?)<\/div>/g, '$1\n')
   
-  // Remove tags HTML extras
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  return temp.textContent || ''
+  // Converte tags HTML para markdown
+  html = html.replace(/<strong>(.*?)<\/strong>/g, '**$1**')
+  html = html.replace(/<b>(.*?)<\/b>/g, '**$1**')
+  html = html.replace(/<em>(.*?)<\/em>/g, '_$1_')
+  html = html.replace(/<i>(.*?)<\/i>/g, '_$1_')
+  html = html.replace(/<u>(.*?)<\/u>/g, '~~$1~~')
+  
+  // Alinhamentos
+  html = html.replace(/<div style="text-align:\s*center;">(.*?)<\/div>/g, '[center]$1[/center]')
+  html = html.replace(/<div style="text-align:\s*left;">(.*?)<\/div>/g, '[left]$1[/left]')
+  html = html.replace(/<div style="text-align:\s*right;">(.*?)<\/div>/g, '[right]$1[/right]')
+  
+  // Quebras de linha
+  html = html.replace(/<br\s*\/?>/gi, '\n')
+  html = html.replace(/<div>(.*?)<\/div>/g, '\n$1')
+  html = html.replace(/<\/div>/g, '\n')
+  
+  // Remove &nbsp; e outros caracteres especiais
+  html = html.replace(/&nbsp;/g, ' ')
+  html = html.replace(/&amp;/g, '&')
+  html = html.replace(/&lt;/g, '<')
+  html = html.replace(/&gt;/g, '>')
+  
+  // Remove qualquer tag HTML restante
+  html = html.replace(/<[^>]*>/g, '')
+  
+  // Limpa linhas vazias múltiplas
+  html = html.replace(/\n{3,}/g, '\n\n')
+  
+  return html.trim()
 }
 
 const handleInput = (event: Event) => {
