@@ -31,7 +31,7 @@
       </div>
       
       <p class="text-gray-600 text-sm md:text-base line-clamp-3 mb-4 leading-relaxed">
-        {{ stripHtml(note.content) || 'Sem conteúdo' }}
+        {{ note.content || 'Sem conteúdo' }}
       </p>
       
       <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-gray-100">
@@ -58,14 +58,6 @@ defineEmits<{
   edit: [note: Note]
   delete: [note: Note]
 }>()
-
-// Remove HTML tags from content for preview
-const stripHtml = (html: string) => {
-  if (!html) return ''
-  const tmp = document.createElement('div')
-  tmp.innerHTML = html
-  return tmp.textContent || tmp.innerText || ''
-}
 
 const formattedDate = computed(() => {
   const date = new Date(props.note.updated_at)

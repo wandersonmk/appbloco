@@ -45,20 +45,13 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">
               Conteúdo *
             </label>
-            <ClientOnly>
-              <RichTextEditor 
-                v-model="localNote.content"
-                placeholder="Digite o conteúdo da sua nota..."
-              />
-              <template #fallback>
-                <textarea
-                  v-model="localNote.content"
-                  placeholder="Carregando editor..."
-                  rows="10"
-                  class="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                ></textarea>
-              </template>
-            </ClientOnly>
+            <textarea
+              v-model="localNote.content"
+              placeholder="Digite o conteúdo da sua nota..."
+              rows="10"
+              required
+              class="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+            ></textarea>
           </div>
           
           <div>
