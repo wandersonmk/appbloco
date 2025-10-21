@@ -45,13 +45,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">
               Conteúdo *
             </label>
-            <textarea
+            <FormattedTextarea
               v-model="localNote.content"
-              placeholder="Digite o conteúdo da sua nota..."
-              rows="10"
-              required
-              class="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-            ></textarea>
+              placeholder="Digite o conteúdo da sua nota... Use ** para negrito, _ para itálico, __ para sublinhado"
+              :rows="10"
+            />
           </div>
           
           <div>

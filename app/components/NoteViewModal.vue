@@ -35,7 +35,7 @@
         <!-- Content -->
         <div class="flex-1 overflow-y-auto p-4 md:p-8">
           <div class="prose prose-sm md:prose-lg max-w-none">
-            <p class="text-gray-700 text-sm md:text-lg leading-relaxed whitespace-pre-wrap break-words">{{ note.content }}</p>
+            <div class="text-gray-700 text-sm md:text-lg leading-relaxed" v-html="formattedContent"></div>
           </div>
         </div>
 
@@ -91,6 +91,22 @@ const formattedDate = computed(() => {
     hour: '2-digit',
     minute: '2-digit'
   })
+})
+
+const formattedContent = computed(() => {
+  if (!props.note) return ''
+  let html = props.note.content || ''
+  
+  // Converte marcação para HTML
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
+  html = html.replace(/_(.*?)_/g, '<em>$1</em>') // Itálico
+  html = html.replace(/__(.*?)__/g, '<u>$1</u>') // Sublinhado
+  html = html.replace(/\[left\](.*?)\[\/left\]/g, '<div style="text-align: left;">$1</div>') // Esquerda
+  html = html.replace(/\[center\](.*?)\[\/center\]/g, '<div style="text-align: center;">$1</div>') // Centro
+  html = html.replace(/\[right\](.*?)\[\/right\]/g, '<div style="text-align: right;">$1</div>') // Direita
+  html = html.replace(/\n/g, '<br>') // Quebras de linha
+  
+  return html
 })
 
 const closeModal = () => {
